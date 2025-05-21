@@ -1,12 +1,13 @@
 import { StyleSheet, View, Text, FlatList, TouchableOpacity } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
+import { ScreenNavigationProp } from '~/navigation/types';
 import { useStore } from '~/store/store';
 import { COLORS, Card } from '~/components/UIComponents';
 
 export default function SavedEventsScreen() {
-  const router = useRouter();
+  const navigation = useNavigation<ScreenNavigationProp>();
   const { events, savedEvents, removeSavedEvent } = useStore();
   
   // Get saved events data
@@ -18,52 +19,46 @@ export default function SavedEventsScreen() {
   };
 
   return (
-    <>
-      <Stack.Screen options={{ title: 'Meus Eventos Salvos' }} />
-      <View style={styles.container}>
-        {userSavedEvents.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="calendar-outline" size={60} color={COLORS.lightText} />
-            <Text style={styles.emptyText}>
-              Você ainda não salvou nenhum evento
-            </Text>
-            <TouchableOpacity 
-              style={styles.browseButton}
-              onPress={() => router.push('/schedule')}
-            >
-              <Text style={styles.browseButtonText}>Ver programação</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <FlatList
-            data={userSavedEvents}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.eventContainer}>
-                <Card
-                  title={item.title}
-                  description={item.description}
-                  imageUrl={item.image}
-                  date={`${item.date} às ${item.time}`}
-                  location={item.location}
-                  onPress={() => router.push({
-                    pathname: '/details',
-                    params: { id: item.id, type: 'event' }
-                  })}
-                />
-                <TouchableOpacity
-                  style={styles.unsaveButton}
-                  onPress={() => handleUnsaveEvent(item.id)}
-                >
-                  <Ionicons name="close-circle" size={24} color={COLORS.primary} />
-                </TouchableOpacity>
-              </View>
-            )}
-            contentContainerStyle={styles.eventsList}
-          />
-        )}
-      </View>
-    </>
+    <View style={styles.container}>
+      {userSavedEvents.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="calendar-outline" size={60} color={COLORS.lightText} />
+          <Text style={styles.emptyText}>
+            Você ainda não salvou nenhum evento
+          </Text>
+          <TouchableOpacity 
+            style={styles.browseButton}
+            onPress={() => navigation.navigate('Schedule')}
+          >
+            <Text style={styles.browseButtonText}>Ver programação</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={userSavedEvents}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.eventContainer}>
+              <Card
+                title={item.title}
+                description={item.description}
+                imageUrl={item.image}
+                date={`${item.date} às ${item.time}`}
+                location={item.location}
+                onPress={() => navigation.navigate('Details', { id: item.id, type: 'event' })}
+              />
+              <TouchableOpacity
+                style={styles.unsaveButton}
+                onPress={() => handleUnsaveEvent(item.id)}
+              >
+                <Ionicons name="close-circle" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+          )}
+          contentContainerStyle={styles.eventsList}
+        />
+      )}
+    </View>
   );
 }
 

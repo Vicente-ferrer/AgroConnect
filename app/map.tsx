@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Dimensions } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import MapView, { Marker, PROVIDER_GOOGLE, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 
+import { ScreenNavigationProp, RootStackParamList } from '~/navigation/types';
 import { useStore } from '~/store/store';
 import { COLORS, ActionButton } from '~/components/UIComponents';
 
@@ -26,7 +27,10 @@ const DEFAULT_MAP_REGION = {
   longitudeDelta: 0.01,
 };
 
-export default function MapScreen() {  const router = useRouter();
+export default function MapScreen() {
+  const navigation = useNavigation<ScreenNavigationProp>();
+  const route = useRoute<RouteProp<RootStackParamList, 'Map'>>();
+  const { exhibitorId, location: locationParam } = route.params || {};
   const { exhibitors } = useStore();
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -73,10 +77,7 @@ export default function MapScreen() {  const router = useRouter();
           >
             <Callout 
               tooltip
-              onPress={() => router.push({
-                pathname: '/exhibitor-detail',
-                params: { id: exhibitor.id }
-              })}
+              onPress={() => navigation.navigate('ExhibitorDetail', { id: exhibitor.id })}
             >
               <View style={styles.calloutContainer}>
                 <Text style={styles.calloutTitle}>{exhibitor.name}</Text>

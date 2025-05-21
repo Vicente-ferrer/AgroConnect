@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, Image, ScrollView, TouchableOpacity, Linking, Share, Alert } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { ScreenNavigationProp, DetailsRouteProp } from '~/navigation/types';
 import { useStore } from '~/store/store';
 import { COLORS, ActionButton } from '~/components/UIComponents';
 import { Event, Exhibitor } from '~/store/store';
 
 export default function Details() {
-  const router = useRouter();
-  const { id, type } = useLocalSearchParams();
+  const navigation = useNavigation<ScreenNavigationProp>();
+  const route = useRoute<DetailsRouteProp>();
+  const { id, type } = route.params;
   const { events, exhibitors, savedEvents, addSavedEvent, removeSavedEvent } = useStore();
   const [item, setItem] = useState<Event | Exhibitor | null>(null);
   const [isSaved, setIsSaved] = useState(false);
@@ -19,7 +21,7 @@ export default function Details() {
     if (type === 'event') {
       const event = events.find(e => e.id === id);
       setItem(event || null);
-      setIsSaved(savedEvents.includes(id as string));
+      setIsSaved(savedEvents.includes(id));
     } else if (type === 'exhibitor') {
       const exhibitor = exhibitors.find(e => e.id === id);
       setItem(exhibitor || null);
@@ -31,10 +33,10 @@ export default function Details() {
     if (!item || type !== 'event') return;
     
     if (isSaved) {
-      removeSavedEvent(id as string);
+      removeSavedEvent(id);
       setIsSaved(false);
     } else {
-      addSavedEvent(id as string);
+      addSavedEvent(id);
       setIsSaved(true);
     }
   };
@@ -97,19 +99,16 @@ export default function Details() {
   // If item is not found
   if (!item) {
     return (
-      <>
-        <Stack.Screen options={{ title: 'Detalhes' }} />
-        <View style={[styles.container, styles.centered]}>
-          <Ionicons name="alert-circle-outline" size={50} color={COLORS.primary} />
-          <Text style={styles.notFoundText}>Item não encontrado</Text>
-          <ActionButton 
-            title="Voltar" 
-            icon="arrow-back-outline" 
-            onPress={() => router.back()} 
-            style={{ marginTop: 20 }}
-          />
-        </View>
-      </>
+      <View style={[styles.container, styles.centered]}>
+        <Ionicons name="alert-circle-outline" size={50} color={COLORS.primary} />
+        <Text style={styles.notFoundText}>Item não encontrado</Text>
+        <ActionButton 
+          title="Voltar" 
+          icon="arrow-back-outline" 
+          onPress={() => navigation.goBack()} 
+          style={{ marginTop: 20 }}
+        />
+      </View>
     );
   }
 
@@ -117,94 +116,88 @@ export default function Details() {
   if (type === 'event') {
     const event = item as Event;
     return (
-      <>
-        <Stack.Screen options={{ title: 'Detalhes do Evento' }} />
-        <ScrollView style={styles.container}>
-          {/* Event Image */}
-          <View style={styles.imageContainer}>
-            <Image 
-              source={{ uri: event.image }} 
-              style={styles.eventImage} 
-              resizeMode="cover" 
+      <ScrollView style={styles.container}>
+        {/* Event Image */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={{ uri: event.image }} 
+            style={styles.eventImage} 
+            resizeMode="cover" 
+          />
+          <TouchableOpacity 
+            style={styles.saveButton}
+            onPress={toggleSaveEvent}
+          >
+            <Ionicons 
+              name={isSaved ? 'star' : 'star-outline'} 
+              size={28} 
+              color={isSaved ? COLORS.accent : '#FFFFFF'} 
             />
-            <TouchableOpacity 
-              style={styles.saveButton}
-              onPress={toggleSaveEvent}
-            >
-              <Ionicons 
-                name={isSaved ? 'star' : 'star-outline'} 
-                size={28} 
-                color={isSaved ? COLORS.accent : '#FFFFFF'} 
-              />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.shareButton}
-              onPress={shareItem}
-            >
-              <Ionicons 
-                name="share-social-outline" 
-                size={28} 
-                color="#FFFFFF" 
-              />
-            </TouchableOpacity>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.shareButton, { right: 60 }]}
+            onPress={shareItem}
+          >
+            <Ionicons 
+              name="share-social-outline" 
+              size={28} 
+              color="#FFFFFF" 
+            />
+          </TouchableOpacity>
+        </View>
+        
+        {/* Event Details */}
+        <View style={styles.detailsContainer}>
+          <Text style={styles.title}>{event.title}</Text>
+          
+          <View style={styles.infoRows}>
+            <View style={styles.infoRow}>
+              <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.infoText}>{event.date}</Text>
+            </View>
+            
+            <View style={styles.infoRow}>
+              <Ionicons name="time-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.infoText}>{event.time}</Text>
+            </View>
+            
+            <View style={styles.infoRow}>
+              <Ionicons name="location-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.infoText}>{event.location}</Text>
+            </View>
+            
+            <View style={styles.infoRow}>
+              <Ionicons name="pricetag-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.infoText}>
+                {event.category === 'show' && 'Show'}
+                {event.category === 'leilao' && 'Leilão'}
+                {event.category === 'cavalgada' && 'Cavalgada'}
+                {event.category === 'palestra' && 'Palestra'}
+                {event.category === 'rodeio' && 'Rodeio'}
+              </Text>
+            </View>
           </View>
           
-          {/* Event Details */}
-          <View style={styles.detailsContainer}>
-            <Text style={styles.title}>{event.title}</Text>
-            
-            <View style={styles.infoRows}>
-              <View style={styles.infoRow}>
-                <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.infoText}>{event.date}</Text>
-              </View>
-              
-              <View style={styles.infoRow}>
-                <Ionicons name="time-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.infoText}>{event.time}</Text>
-              </View>
-              
-              <View style={styles.infoRow}>
-                <Ionicons name="location-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.infoText}>{event.location}</Text>
-              </View>
-              
-              <View style={styles.infoRow}>
-                <Ionicons name="pricetag-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.infoText}>
-                  {event.category === 'show' && 'Show'}
-                  {event.category === 'leilao' && 'Leilão'}
-                  {event.category === 'cavalgada' && 'Cavalgada'}
-                  {event.category === 'palestra' && 'Palestra'}
-                  {event.category === 'rodeio' && 'Rodeio'}
-                </Text>
-              </View>
-            </View>
-            
-            <Text style={styles.sectionTitle}>Descrição</Text>
-            <Text style={styles.description}>{event.description}</Text>
-            
-            <View style={styles.actionButtons}>
-              <ActionButton 
-                title="Ver Localização" 
-                icon="navigate-outline" 
-                onPress={() => router.push({
-                  pathname: '/map',
-                  params: { location: event.location }
-                })} 
-                style={{ flex: 1, marginRight: 8 }}
-              />
-              <ActionButton 
-                title={isSaved ? "Remover" : "Salvar"} 
-                icon={isSaved ? "star" : "star-outline"} 
-                onPress={toggleSaveEvent} 
-                primary={!isSaved}
-                style={{ flex: 1, marginLeft: 8 }}
-              />
-            </View>
+          <Text style={styles.sectionTitle}>Descrição</Text>
+          <Text style={styles.description}>{event.description}</Text>
+          
+          <View style={styles.actionButtons}>
+            <ActionButton 
+              title="Ver Localização" 
+              icon="navigate-outline" 
+              onPress={() => navigation.navigate('Map', { location: event.location })} 
+              style={{ flex: 1, marginRight: 8 }}
+            />
+            <ActionButton 
+              title={isSaved ? "Remover" : "Salvar"} 
+              icon={isSaved ? "star" : "star-outline"} 
+              onPress={toggleSaveEvent} 
+              primary={!isSaved}
+              style={{ flex: 1, marginLeft: 8 }}
+            />
           </View>
-        </ScrollView>
-      </>
+        </View>
+      </ScrollView>
     );
   }
   
@@ -212,102 +205,96 @@ export default function Details() {
   else {
     const exhibitor = item as Exhibitor;
     return (
-      <>
-        <Stack.Screen options={{ title: 'Detalhes do Expositor' }} />
-        <ScrollView style={styles.container}>
-          {/* Exhibitor Logo */}
-          <View style={styles.imageContainer}>
-            <Image 
-              source={{ uri: exhibitor.logo }} 
-              style={styles.exhibitorImage} 
-              resizeMode="cover" 
+      <ScrollView style={styles.container}>
+        {/* Exhibitor Logo */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={{ uri: exhibitor.logo }} 
+            style={styles.exhibitorImage} 
+            resizeMode="cover" 
+          />
+          <TouchableOpacity 
+            style={[styles.shareButton, { right: 10 }]}
+            onPress={shareItem}
+          >
+            <Ionicons 
+              name="share-social-outline" 
+              size={28} 
+              color="#FFFFFF" 
             />
-            <TouchableOpacity 
-              style={styles.shareButton}
-              onPress={shareItem}
-            >
-              <Ionicons 
-                name="share-social-outline" 
-                size={28} 
-                color="#FFFFFF" 
-              />
-            </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
+        
+        {/* Exhibitor Details */}
+        <View style={styles.detailsContainer}>
+          <Text style={styles.title}>{exhibitor.name}</Text>
+          <View style={styles.badgeContainer}>
+            <Text style={styles.badge}>{exhibitor.sector}</Text>
           </View>
           
-          {/* Exhibitor Details */}
-          <View style={styles.detailsContainer}>
-            <Text style={styles.title}>{exhibitor.name}</Text>
-            <View style={styles.badgeContainer}>
-              <Text style={styles.badge}>{exhibitor.sector}</Text>
-            </View>
-            
-            <Text style={styles.sectionTitle}>Sobre</Text>
-            <Text style={styles.description}>{exhibitor.description}</Text>
-            
-            {exhibitor.catalog && exhibitor.catalog.length > 0 && (
-              <>
-                <Text style={styles.sectionTitle}>Catálogo</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {exhibitor.catalog.map((imageUrl, index) => (
-                    <TouchableOpacity 
-                      key={index}
-                      onPress={() => Alert.alert('Catálogo', 'Visualização completa em breve disponível!')}
-                    >
-                      <Image 
-                        source={{ uri: imageUrl }} 
-                        style={styles.catalogImage} 
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </>
+          <Text style={styles.sectionTitle}>Sobre</Text>
+          <Text style={styles.description}>{exhibitor.description}</Text>
+          
+          {exhibitor.catalog && exhibitor.catalog.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Catálogo</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {exhibitor.catalog.map((imageUrl, index) => (
+                  <TouchableOpacity 
+                    key={index}
+                    onPress={() => Alert.alert('Catálogo', 'Visualização completa em breve disponível!')}
+                  >
+                    <Image 
+                      source={{ uri: imageUrl }} 
+                      style={styles.catalogImage} 
+                    />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </>
+          )}
+          
+          <Text style={styles.sectionTitle}>Contato</Text>
+          <View style={styles.contactButtons}>
+            {exhibitor.contact.whatsapp && (
+              <TouchableOpacity 
+                style={[styles.contactButton, { backgroundColor: '#25D366' }]}
+                onPress={contactViaWhatsApp}
+              >
+                <Ionicons name="logo-whatsapp" size={22} color="#FFFFFF" />
+                <Text style={styles.contactButtonText}>WhatsApp</Text>
+              </TouchableOpacity>
             )}
             
-            <Text style={styles.sectionTitle}>Contato</Text>
-            <View style={styles.contactButtons}>
-              {exhibitor.contact.whatsapp && (
-                <TouchableOpacity 
-                  style={[styles.contactButton, { backgroundColor: '#25D366' }]}
-                  onPress={contactViaWhatsApp}
-                >
-                  <Ionicons name="logo-whatsapp" size={22} color="#FFFFFF" />
-                  <Text style={styles.contactButtonText}>WhatsApp</Text>
-                </TouchableOpacity>
-              )}
-              
-              {exhibitor.contact.phone && (
-                <TouchableOpacity 
-                  style={[styles.contactButton, { backgroundColor: COLORS.primary }]}
-                  onPress={() => Linking.openURL(`tel:${exhibitor.contact.phone}`)}
-                >
-                  <Ionicons name="call-outline" size={22} color="#FFFFFF" />
-                  <Text style={styles.contactButtonText}>Ligar</Text>
-                </TouchableOpacity>
-              )}
-              
-              {exhibitor.contact.website && (
-                <TouchableOpacity 
-                  style={[styles.contactButton, { backgroundColor: COLORS.secondary }]}
-                  onPress={openWebsite}
-                >
-                  <Ionicons name="globe-outline" size={22} color="#FFFFFF" />
-                  <Text style={styles.contactButtonText}>Site</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            {exhibitor.contact.phone && (
+              <TouchableOpacity 
+                style={[styles.contactButton, { backgroundColor: COLORS.primary }]}
+                onPress={() => Linking.openURL(`tel:${exhibitor.contact.phone}`)}
+              >
+                <Ionicons name="call-outline" size={22} color="#FFFFFF" />
+                <Text style={styles.contactButtonText}>Ligar</Text>
+              </TouchableOpacity>
+            )}
             
-            <ActionButton 
-              title="Ver no Mapa" 
-              icon="navigate-outline" 
-              onPress={() => router.push({
-                pathname: '/map',
-                params: { exhibitorId: exhibitor.id }
-              })} 
-              style={{ marginTop: 20 }}
-            />
+            {exhibitor.contact.website && (
+              <TouchableOpacity 
+                style={[styles.contactButton, { backgroundColor: COLORS.secondary }]}
+                onPress={openWebsite}
+              >
+                <Ionicons name="globe-outline" size={22} color="#FFFFFF" />
+                <Text style={styles.contactButtonText}>Site</Text>
+              </TouchableOpacity>
+            )}
           </View>
-        </ScrollView>
-      </>
+          
+          <ActionButton 
+            title="Ver no Mapa" 
+            icon="navigate-outline" 
+            onPress={() => navigation.navigate('Map', { exhibitorId: exhibitor.id })} 
+            style={{ marginTop: 20 }}
+          />
+        </View>
+      </ScrollView>
     );
   }
 }
@@ -351,7 +338,6 @@ const styles = StyleSheet.create({
   shareButton: {
     position: 'absolute',
     top: 10,
-    right: type === 'event' ? 60 : 10,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderRadius: 20,
     padding: 8,

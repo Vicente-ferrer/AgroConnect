@@ -1,12 +1,13 @@
 import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { ScreenNavigationProp } from '~/navigation/types';
 import { useStore } from '~/store/store';
 import { COLORS, ActionButton, Card } from '~/components/UIComponents';
 
 export default function ProfileScreen() {
-  const router = useRouter();
+  const navigation = useNavigation<ScreenNavigationProp>();
   const { events, savedEvents, removeSavedEvent } = useStore();
   
   // Get saved events data
@@ -72,7 +73,7 @@ export default function ProfileScreen() {
             </Text>
             <ActionButton
               title="Explorar Programação"
-              onPress={() => router.push('/schedule')}
+              onPress={() => navigation.navigate('Schedule')}
               style={{ marginTop: 16 }}
             />
           </View>
@@ -88,10 +89,7 @@ export default function ProfileScreen() {
                   imageUrl={item.image}
                   date={`${item.date} às ${item.time}`}
                   location={item.location}
-                  onPress={() => router.push({
-                    pathname: '/details',
-                    params: { id: item.id, type: 'event' }
-                  })}
+                  onPress={() => navigation.navigate('Details', { id: item.id, type: 'event' })}
                 />
                 <TouchableOpacity
                   style={styles.removeButton}

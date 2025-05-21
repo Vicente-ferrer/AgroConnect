@@ -1,13 +1,15 @@
 import { StyleSheet, View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { ScreenNavigationProp, NewsDetailRouteProp } from '~/navigation/types';
 import { useStore } from '~/store/store';
 import { COLORS } from '~/components/UIComponents';
 
 export default function NewsDetail() {
-  const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const navigation = useNavigation<ScreenNavigationProp>();
+  const route = useRoute<NewsDetailRouteProp>();
+  const { id } = route.params;
   const { news } = useStore();
   
   // Find the news item by id
@@ -17,13 +19,12 @@ export default function NewsDetail() {
   if (!newsItem) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Notícia' }} />
         <View style={[styles.container, styles.centered]}>
           <Ionicons name="alert-circle-outline" size={50} color={COLORS.primary} />
           <Text style={styles.notFoundText}>Notícia não encontrada</Text>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => navigation.goBack()}
           >
             <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
             <Text style={styles.backButtonText}>Voltar</Text>
@@ -35,7 +36,6 @@ export default function NewsDetail() {
   
   return (
     <>
-      <Stack.Screen options={{ title: 'Notícia' }} />
       <ScrollView style={styles.container}>
         {/* News Image */}
         {newsItem.image && (
@@ -72,7 +72,7 @@ export default function NewsDetail() {
           
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => navigation.goBack()}
           >
             <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
             <Text style={styles.backButtonText}>Voltar para notícias</Text>

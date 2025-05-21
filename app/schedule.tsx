@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 
+import { ScreenNavigationProp } from '~/navigation/types';
 import { useStore } from '~/store/store';
 import { COLORS, Card, ActionButton } from '~/components/UIComponents';
 
@@ -22,7 +23,7 @@ const EVENT_CATEGORIES = [
 ];
 
 export default function ScheduleScreen() {
-  const router = useRouter();
+  const navigation = useNavigation<ScreenNavigationProp>();
   const { events, savedEvents, addSavedEvent, removeSavedEvent } = useStore();
   const [selectedDate, setSelectedDate] = useState(START_DATE);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -161,10 +162,7 @@ export default function ScheduleScreen() {
                   imageUrl={item.image}
                   date={`Horário: ${item.time}`}
                   location={item.location}
-                  onPress={() => router.push({
-                    pathname: '/details',
-                    params: { id: item.id, type: 'event' }
-                  })}
+                  onPress={() => navigation.navigate('Details', { id: item.id, type: 'event' })}
                 />
                 <TouchableOpacity
                   style={styles.saveButton}

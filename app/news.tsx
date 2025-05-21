@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, TextInput } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
+import { ScreenNavigationProp } from '~/navigation/types';
 import { useStore } from '~/store/store';
 import { COLORS } from '~/components/UIComponents';
 
 export default function NewsScreen() {
-  const router = useRouter();
+  const navigation = useNavigation<ScreenNavigationProp>();
   const { news } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -19,7 +20,6 @@ export default function NewsScreen() {
   
   return (
     <>
-      <Stack.Screen options={{ title: 'Notícias' }} />
       <View style={styles.container}>
         {/* Search Bar */}
         <View style={styles.searchContainer}>
@@ -44,10 +44,7 @@ export default function NewsScreen() {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.newsCard}
-              onPress={() => router.push({
-                pathname: '/news-detail',
-                params: { id: item.id }
-              })}
+              onPress={() => navigation.navigate('NewsDetail', { id: item.id })}
             >
               <Image 
                 source={{ uri: item.image }} 

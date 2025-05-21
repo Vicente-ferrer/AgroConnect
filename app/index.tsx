@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View, ScrollView, FlatList, useWindowDimensions } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import Animated, { useSharedValue, useAnimatedScrollHandler, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 
+import { ScreenNavigationProp } from '~/navigation/types';
 import { useStore } from '~/store/store';
 import { Banner, Card, QuickAccessButton, SectionHeader, COLORS } from '~/components/UIComponents';
 
@@ -31,7 +32,7 @@ const BANNERS = [
 ];
 
 export default function HomeScreen() {
-  const router = useRouter();
+  const navigation = useNavigation<ScreenNavigationProp>();
   const { width } = useWindowDimensions();
   const { events, news } = useStore();
   const [currentBanner, setCurrentBanner] = useState(0);
@@ -81,7 +82,7 @@ export default function HomeScreen() {
               <Banner 
                 imageUrl={item.imageUrl} 
                 title={item.title}
-                onPress={() => router.push('/schedule')}
+                onPress={() => navigation.navigate('Schedule')}
               />
             </View>
           )}
@@ -137,23 +138,23 @@ export default function HomeScreen() {
         <QuickAccessButton 
           icon="map-outline" 
           label="Mapa" 
-          onPress={() => router.push('/map')} 
+          onPress={() => navigation.navigate('Map')} 
         />
         <QuickAccessButton 
           icon="calendar-outline" 
           label="Programação" 
-          onPress={() => router.push('/schedule')} 
+          onPress={() => navigation.navigate('Schedule')} 
           color={COLORS.secondary}
         />
         <QuickAccessButton 
           icon="business-outline" 
           label="Expositores" 
-          onPress={() => router.push('/exhibitors')} 
+          onPress={() => navigation.navigate('Exhibitors')} 
         />
         <QuickAccessButton 
           icon="star-outline" 
           label="Meus Eventos" 
-          onPress={() => router.push('/profile')} 
+          onPress={() => navigation.navigate('Profile')} 
           color={COLORS.secondary}
         />
       </View>
@@ -161,7 +162,7 @@ export default function HomeScreen() {
       {/* Upcoming Events */}
       <SectionHeader 
         title="Próximos Eventos" 
-        onSeeAll={() => router.push('/schedule')} 
+        onSeeAll={() => navigation.navigate('Schedule')} 
       />
       
       <View style={styles.eventsContainer}>
@@ -173,10 +174,7 @@ export default function HomeScreen() {
             imageUrl={event.image}
             date={`${event.date} às ${event.time}`}
             location={event.location}
-            onPress={() => router.push({
-              pathname: '/details',
-              params: { id: event.id, type: 'event' }
-            })}
+            onPress={() => navigation.navigate('Details', { id: event.id, type: 'event' })}
           />
         ))}
       </View>
@@ -184,7 +182,7 @@ export default function HomeScreen() {
       {/* Latest News */}
       <SectionHeader 
         title="Últimas Notícias" 
-        onSeeAll={() => router.push('/news')} 
+        onSeeAll={() => navigation.navigate('News')} 
       />
       
       <View style={styles.newsContainer}>
@@ -195,10 +193,7 @@ export default function HomeScreen() {
             description={item.content}
             imageUrl={item.image}
             date={item.date}
-            onPress={() => router.push({
-              pathname: '/news-detail',
-              params: { id: item.id }
-            })}
+            onPress={() => navigation.navigate('NewsDetail', { id: item.id })}
             style={styles.newsCard}
           />
         ))}

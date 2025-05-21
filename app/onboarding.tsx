@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, Dimensions, TouchableOpacity } from 'react-native';
-import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
 
+import { ScreenNavigationProp } from '~/navigation/types';
 import { COLORS } from '~/components/UIComponents';
 
 const { width, height } = Dimensions.get('window');
@@ -41,6 +42,7 @@ const ONBOARDING_SLIDES = [
 ];
 
 export default function OnboardingScreen() {
+  const navigation = useNavigation<ScreenNavigationProp>();
   const [currentSlide, setCurrentSlide] = useState(0);
   const slideProgress = useSharedValue(0);
   
@@ -74,21 +76,19 @@ export default function OnboardingScreen() {
   const handleSkip = () => {
     setCurrentSlide(ONBOARDING_SLIDES.length - 1);
   };
-  
-  // Finish onboarding and mark as completed
+    // Finish onboarding and mark as completed
   const finishOnboarding = async () => {
     try {
       await AsyncStorage.setItem('@onboarding_completed', 'true');
-      router.replace('/');
+      navigation.navigate('Tabs');
     } catch (error) {
       console.error('Error saving onboarding status:', error);
-      router.replace('/');
+      navigation.navigate('Tabs');
     }
   };
   
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
         {/* Skip Button */}
         {currentSlide < ONBOARDING_SLIDES.length - 1 && (

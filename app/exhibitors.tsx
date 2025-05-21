@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { StyleSheet, View, Text, FlatList, TextInput, TouchableOpacity, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { ScreenNavigationProp } from '~/navigation/types';
 import { useStore } from '~/store/store';
 import { COLORS } from '~/components/UIComponents';
 
@@ -16,7 +17,7 @@ const SECTORS = [
 ];
 
 export default function ExhibitorsScreen() {
-  const router = useRouter();
+  const navigation = useNavigation<ScreenNavigationProp>();
   const { exhibitors } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSector, setSelectedSector] = useState('all');
@@ -82,10 +83,7 @@ export default function ExhibitorsScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.exhibitorCard}
-            onPress={() => router.push({
-              pathname: '/exhibitor-detail',
-              params: { id: item.id }
-            })}
+            onPress={() => navigation.navigate('ExhibitorDetail', { id: item.id })}
           >
             <Image 
               source={{ uri: item.logo }} 
@@ -98,10 +96,7 @@ export default function ExhibitorsScreen() {
               <View style={styles.exhibitorActions}>
                 <TouchableOpacity 
                   style={styles.actionButton}
-                  onPress={() => router.push({
-                    pathname: '/map',
-                    params: { exhibitorId: item.id }
-                  })}
+                  onPress={() => navigation.navigate('Map', { exhibitorId: item.id })}
                 >
                   <Ionicons name="location-outline" size={16} color={COLORS.primary} />
                   <Text style={styles.actionText}>Ver no mapa</Text>

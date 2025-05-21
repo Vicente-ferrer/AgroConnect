@@ -1,13 +1,15 @@
 import { StyleSheet, View, Text, Image, ScrollView, TouchableOpacity, Linking, Alert } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { ScreenNavigationProp, ExhibitorDetailRouteProp } from '~/navigation/types';
 import { useStore } from '~/store/store';
 import { COLORS, ActionButton } from '~/components/UIComponents';
 
 export default function ExhibitorDetail() {
-  const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const navigation = useNavigation<ScreenNavigationProp>();
+  const route = useRoute<ExhibitorDetailRouteProp>();
+  const { id } = route.params;
   const { exhibitors } = useStore();
   
   // Find the exhibitor by id
@@ -48,14 +50,13 @@ export default function ExhibitorDetail() {
   if (!exhibitor) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Detalhes do Expositor' }} />
         <View style={[styles.container, styles.centered]}>
           <Ionicons name="alert-circle-outline" size={50} color={COLORS.primary} />
           <Text style={styles.notFoundText}>Expositor não encontrado</Text>
           <ActionButton 
             title="Voltar" 
             icon="arrow-back-outline" 
-            onPress={() => router.back()} 
+            onPress={() => navigation.goBack()} 
             style={{ marginTop: 20 }}
           />
         </View>
@@ -65,7 +66,6 @@ export default function ExhibitorDetail() {
   
   return (
     <>
-      <Stack.Screen options={{ title: exhibitor.name }} />
       <ScrollView style={styles.container}>
         {/* Exhibitor Banner */}
         <View style={styles.bannerContainer}>
@@ -156,10 +156,7 @@ export default function ExhibitorDetail() {
             <ActionButton 
               title="Ver no Mapa" 
               icon="navigate-outline" 
-              onPress={() => router.push({
-                pathname: '/map',
-                params: { exhibitorId: exhibitor.id }
-              })} 
+              onPress={() => navigation.navigate('Map', { exhibitorId: exhibitor.id })} 
             />
           </View>
         </View>
